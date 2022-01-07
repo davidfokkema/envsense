@@ -6,6 +6,7 @@ authors = ["David Fokkema <davidfokkema@icloud.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+bleak = "^0.13.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
