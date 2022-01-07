@@ -173,6 +173,17 @@ checkqa-mypy = ["mypy (==v0.761)"]
 testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xmlschema"]
 
 [[package]]
+name = "rumps"
+version = "0.3.0"
+description = "Ridiculously Uncomplicated MacOS Python Statusbar apps."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+pyobjc-framework-Cocoa = "*"
+
+[[package]]
 name = "wcwidth"
 version = "0.2.5"
 description = "Measures the displayed width of unicode strings in a terminal"
@@ -183,7 +194,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "fce70f9d0de86e44a050c7c5a91b6fd3ba107fcd8ef3330194b5869000b1620b"
+content-hash = "4663a160b9c62569e10cd3f3117322080636a1dea1662d0f57e4e50379f0d29c"
 
 [metadata.files]
 atomicwrites = [
@@ -270,6 +281,10 @@ pyparsing = [
 pytest = [
     {file = "pytest-5.4.3-py3-none-any.whl", hash = "sha256:5c0db86b698e8f170ba4582a492248919255fcd4c79b1ee64ace34301fb589a1"},
     {file = "pytest-5.4.3.tar.gz", hash = "sha256:7979331bfcba207414f5e1263b5a0f8f521d0f457318836a7355531ed1a4c7d8"},
+]
+rumps = [
+    {file = "rumps-0.3.0-py2-none-any.whl", hash = "sha256:e5ea41ce62312a0f1fa4280fc587bd8b5c6ff7ed0be219752c95f013109d148a"},
+    {file = "rumps-0.3.0.tar.gz", hash = "sha256:c8df19347c661cac8906fffd410727c6000f978a6c8c44a2803a1786b35c4c1f"},
 ]
 wcwidth = [
     {file = "wcwidth-0.2.5-py2.py3-none-any.whl", hash = "sha256:beb4802a9cebb9144e99086eff703a642a13d6a0052920003a230f3294bbe784"},
