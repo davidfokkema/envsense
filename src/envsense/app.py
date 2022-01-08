@@ -1,6 +1,7 @@
 import asyncio
 import struct
 import threading
+import time
 import uuid
 
 import bleak
@@ -24,14 +25,16 @@ class AwesomeStatusBarApp(rumps.App):
     device = None
     scan_thread = None
 
+    last_update = None
     temperature = 0.0
 
     def __init__(self):
         super(AwesomeStatusBarApp, self).__init__("EnvSense")
 
         self.menu_device = rumps.MenuItem("Searching...")
+        self.menu_last_update = rumps.MenuItem("")
         self.menu_temp = rumps.MenuItem("temperature")
-        self.menu = [self.menu_device, self.menu_temp, None]
+        self.menu = [self.menu_device, self.menu_last_update, self.menu_temp, None]
 
         self.menu_temp.title = "Temperature: Unknown"
         self.menu_temp.state = True
@@ -45,6 +48,7 @@ class AwesomeStatusBarApp(rumps.App):
                     (self.temperature,) = struct.unpack(
                         "<f", await client.read_gatt_char(TEMP_UUID)
                     )
+                    self.last_update = time.time()
                     self.menu_temp.title = f"Temperature: {self.temperature:.1f} ºC"
                     self.update_title()
             except (asyncio.TimeoutError, bleak.BleakError):
@@ -77,6 +81,27 @@ class AwesomeStatusBarApp(rumps.App):
             if DEVNAME in dev.name:
                 self.device = dev
                 self.menu_device.title = dev.name
+
+    @rumps.timer(1)
+    def update_last_update(self, sender):
+        text = "Last update: "
+        if self.last_update is None:
+            text += "never"
+        else:
+            delta_t = time.time() - self.last_update
+            if delta_t < 5:
+                text += "just now"
+            elif delta_t < 60:
+                text += f"{delta_t:.0f} seconds ago"
+            elif delta_t < 2 * 60:
+                text += "1 minute ago"
+            elif delta_t < 60 * 60:
+                text += f"{delta_t / 60:.0f} minutes ago"
+            elif delta_t < 2 * 60 * 60:
+                text += "1 hour ago"
+            else:
+                text += f"{delta_t / 3600:.0f} hours ago"
+        self.menu_last_update.title = text
 
     @rumps.clicked("temperature")
     def change_temperature_state(self, sender):
