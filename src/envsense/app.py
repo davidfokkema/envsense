@@ -17,7 +17,11 @@ ECO2_UUID = uuid.UUID(int=BASE_UUID + (0x2BD3 << 96))
 
 def sync(func):
     def f(*args, **kwargs):
-        asyncio.run(func(*args, **kwargs))
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+        loop.run_until_complete(func(*args, **kwargs))
 
     f.__name__ = func.__name__
     return f
@@ -122,7 +126,11 @@ class AwesomeStatusBarApp(rumps.App):
 
     @sync
     async def scan_devices(self):
-        devices = await bleak.BleakScanner.discover()
+        try:
+            devices = await bleak.BleakScanner.discover()
+        except bleak.BleakError:
+            return
+
         for dev in devices:
             if DEVNAME in dev.name:
                 self.device = dev
