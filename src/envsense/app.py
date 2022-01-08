@@ -26,6 +26,7 @@ def sync(func):
 class AwesomeStatusBarApp(rumps.App):
 
     device = None
+    first_contact = True
     scan_thread = None
 
     last_update = None
@@ -89,6 +90,9 @@ class AwesomeStatusBarApp(rumps.App):
             except (asyncio.TimeoutError, bleak.BleakError):
                 self.device = None
                 self.menu_device.title = "Searching..."
+                rumps.notification(
+                    "Lost contact", None, "Lost contact with the EnvSense device."
+                )
 
     def update_title(self):
         title_items = []
@@ -123,6 +127,12 @@ class AwesomeStatusBarApp(rumps.App):
             if DEVNAME in dev.name:
                 self.device = dev
                 self.menu_device.title = dev.name
+                if self.first_contact:
+                    self.first_contact = False
+                else:
+                    rumps.notification(
+                        "Device found", None, "Reconnected to the EnvSense device."
+                    )
 
     @rumps.timer(1)
     def update_last_update(self, sender):
