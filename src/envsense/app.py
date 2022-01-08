@@ -27,9 +27,9 @@ class AwesomeStatusBarApp(rumps.App):
     def __init__(self):
         super(AwesomeStatusBarApp, self).__init__("EnvSense")
 
-        self.menu_device = rumps.MenuItem("Searching for device...")
-        self.menu_temp = rumps.MenuItem("Waiting for data...")
-        self.menu = [self.menu_device, self.menu_temp]
+        self.menu_device = rumps.MenuItem("device")
+        self.menu_temp = rumps.MenuItem("temperature")
+        self.menu = [self.menu_device, self.menu_temp, None]
 
     @rumps.timer(5)
     @sync
@@ -37,12 +37,22 @@ class AwesomeStatusBarApp(rumps.App):
         if self.device is not None:
             try:
                 async with bleak.BleakClient(self.device.address) as client:
-                    temperature = struct.unpack(
+                    (self.temperature,) = struct.unpack(
                         "<f", await client.read_gatt_char(TEMP_UUID)
-                    )[0]
-                    self.title = f"{temperature:.1f} ºC"
+                    )
+                    self.menu_temp.title = f"Temperature: {self.temperature:.1f} ºC"
+                    self.update_title()
             except (asyncio.TimeoutError, bleak.BleakError):
                 self.device = None
+
+    def update_title(self):
+        title_items = []
+        if self.menu_temp.state:
+            title_items.append(f"{self.temperature:.1f} ºC")
+        if title_items:
+            self.title = " ".join(title_items)
+        else:
+            self.title = "EnvSense"
 
     @rumps.timer(10)
     def start_scan_if_needed(self, sender):
@@ -60,6 +70,11 @@ class AwesomeStatusBarApp(rumps.App):
         for dev in devices:
             if DEVNAME in dev.name:
                 self.device = dev
+
+    @rumps.clicked("temperature")
+    def change_temperature_state(self, sender):
+        sender.state = not sender.state
+        self.update_title()
 
     # @rumps.clicked("Preferences")
     # def prefs(self, _):
