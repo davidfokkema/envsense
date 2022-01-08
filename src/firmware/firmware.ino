@@ -25,7 +25,12 @@ void setup() {
   BLE.advertise();
 
   tempsensor.begin(0x18);
-  tempsensor.setResolution(3);
+  tempsensor.setResolution(3); // sets the resolution mode of reading, the modes are defined in the table bellow:
+  // Mode Resolution SampleTime
+  //  0    0.5°C       30 ms
+  //  1    0.25°C      65 ms
+  //  2    0.125°C     130 ms
+  //  3    0.0625°C    250 ms
 }
 
 void loop() {
