@@ -31,7 +31,7 @@ class AwesomeStatusBarApp(rumps.App):
         self.menu_temp = rumps.MenuItem("Waiting for data...")
         self.menu = [self.menu_device, self.menu_temp]
 
-    @rumps.timer(2)
+    @rumps.timer(5)
     @sync
     async def update_temperature(self, sender):
         if self.device is not None:
@@ -44,8 +44,10 @@ class AwesomeStatusBarApp(rumps.App):
             except (asyncio.TimeoutError, bleak.BleakError):
                 self.device = None
 
-    @rumps.timer(5)
+    @rumps.timer(10)
     def start_scan_if_needed(self, sender):
+        # only execute when there is no connected device and there is not a
+        # currently running scan thread
         if self.device is None and (
             self.scan_thread is None or not self.scan_thread.is_alive()
         ):
