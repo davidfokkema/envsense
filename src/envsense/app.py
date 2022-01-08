@@ -24,12 +24,17 @@ class AwesomeStatusBarApp(rumps.App):
     device = None
     scan_thread = None
 
+    temperature = 0.0
+
     def __init__(self):
         super(AwesomeStatusBarApp, self).__init__("EnvSense")
 
-        self.menu_device = rumps.MenuItem("device")
+        self.menu_device = rumps.MenuItem("Searching...")
         self.menu_temp = rumps.MenuItem("temperature")
         self.menu = [self.menu_device, self.menu_temp, None]
+
+        self.menu_temp.title = "Temperature: Unknown"
+        self.menu_temp.state = True
 
     @rumps.timer(5)
     @sync
@@ -44,6 +49,7 @@ class AwesomeStatusBarApp(rumps.App):
                     self.update_title()
             except (asyncio.TimeoutError, bleak.BleakError):
                 self.device = None
+                self.menu_device.title = "Searching..."
 
     def update_title(self):
         title_items = []
@@ -70,6 +76,7 @@ class AwesomeStatusBarApp(rumps.App):
         for dev in devices:
             if DEVNAME in dev.name:
                 self.device = dev
+                self.menu_device.title = dev.name
 
     @rumps.clicked("temperature")
     def change_temperature_state(self, sender):
