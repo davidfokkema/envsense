@@ -21,7 +21,6 @@ Bsec iaqSensor;
 unsigned long lastMeasurementTime = 0;
 
 void setup() {
-  Serial.begin(9600);
   BLE.begin();
   
   BLE.setLocalName("Arduino EnvSense");
