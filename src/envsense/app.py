@@ -39,11 +39,14 @@ class AwesomeStatusBarApp(rumps.App):
     @sync
     async def update_temperature(self, sender):
         if self.device is not None:
-            async with bleak.BleakClient(self.device.address) as client:
-                temperature = struct.unpack(
-                    "<f", await client.read_gatt_char(TEMP_UUID)
-                )[0]
-                self.title = f"{temperature:.1f} ºC"
+            try:
+                async with bleak.BleakClient(self.device.address) as client:
+                    temperature = struct.unpack(
+                        "<f", await client.read_gatt_char(TEMP_UUID)
+                    )[0]
+                    self.title = f"{temperature:.1f} ºC"
+            except (asyncio.TimeoutError, bleak.BleakError):
+                self.device = None
 
     @rumps.timer(5)
     def start_scan_if_needed(self, sender):
