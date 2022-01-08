@@ -19,6 +19,7 @@ def sync(func):
             loop = asyncio.new_event_loop()
         loop.run_until_complete(func(*args, **kwargs))
 
+    f.__name__ = func.__name__
     return f
 
 
@@ -37,7 +38,6 @@ class AwesomeStatusBarApp(rumps.App):
     @rumps.timer(2)
     @sync
     async def update_temperature(self, sender):
-        print("Update...")
         if self.device is not None:
             async with bleak.BleakClient(self.device.address) as client:
                 temperature = struct.unpack(
@@ -47,22 +47,18 @@ class AwesomeStatusBarApp(rumps.App):
 
     @rumps.timer(5)
     def start_scan_if_needed(self, sender):
-        print("Start scan")
         if self.device is None and (
             self.scan_thread is None or not self.scan_thread.is_alive()
         ):
             self.scan_thread = threading.Thread(target=self.scan_devices)
             self.scan_thread.start()
-        print("Done")
 
     @sync
     async def scan_devices(self):
-        print("Scanning...")
         devices = await bleak.BleakScanner.discover()
         for dev in devices:
             if DEVNAME in dev.name:
                 self.device = dev
-        print("Scanning done.")
 
     # @rumps.clicked("Preferences")
     # def prefs(self, _):
