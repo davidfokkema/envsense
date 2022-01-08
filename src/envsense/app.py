@@ -9,7 +9,10 @@ import rumps
 
 DEVNAME = "Arduino EnvSense"
 BASE_UUID = 0x0000000000001000800000805F9B34FB
-TEMP_UUID = uuid.UUID(int=BASE_UUID + (0x2A6E << 96))
+PRESSURE_UUID = uuid.UUID(int=BASE_UUID + (0x2A6D << 96))
+TEMPERATURE_UUID = uuid.UUID(int=BASE_UUID + (0x2A6E << 96))
+HUMIDITY_UUID = uuid.UUID(int=BASE_UUID + (0x2A6F << 96))
+ECO2_UUID = uuid.UUID(int=BASE_UUID + (0x2BD3 << 96))
 
 
 def sync(func):
@@ -27,29 +30,61 @@ class AwesomeStatusBarApp(rumps.App):
 
     last_update = None
     temperature = 0.0
+    pressure = 0.0
+    humidity = 0.0
+    eCO2 = 0.0
 
     def __init__(self):
         super(AwesomeStatusBarApp, self).__init__("EnvSense")
 
         self.menu_device = rumps.MenuItem("Searching...")
         self.menu_last_update = rumps.MenuItem("")
-        self.menu_temp = rumps.MenuItem("temperature")
-        self.menu = [self.menu_device, self.menu_last_update, self.menu_temp, None]
+        self.menu_temperature = rumps.MenuItem("temperature")
+        self.menu_pressure = rumps.MenuItem("pressure")
+        self.menu_humidity = rumps.MenuItem("humidity")
+        self.menu_eCO2 = rumps.MenuItem("eCO2")
+        self.menu = [
+            self.menu_device,
+            self.menu_last_update,
+            self.menu_temperature,
+            self.menu_pressure,
+            self.menu_humidity,
+            self.menu_eCO2,
+            None,
+        ]
 
-        self.menu_temp.title = "Temperature: Unknown"
-        self.menu_temp.state = True
+        self.menu_temperature.title = "Temperature: unknown"
+        self.menu_temperature.state = True
+        self.menu_pressure.title = "Pressure: unknown"
+        self.menu_humidity.title = "Humidity: unknown"
+        self.menu_eCO2.title = "eCO₂: unknown"
 
     @rumps.timer(5)
     @sync
-    async def update_temperature(self, sender):
+    async def update_values(self, sender):
         if self.device is not None:
             try:
                 async with bleak.BleakClient(self.device.address) as client:
                     (self.temperature,) = struct.unpack(
-                        "<f", await client.read_gatt_char(TEMP_UUID)
+                        "<f", await client.read_gatt_char(TEMPERATURE_UUID)
                     )
+                    (self.pressure,) = struct.unpack(
+                        "<f", await client.read_gatt_char(PRESSURE_UUID)
+                    )
+                    (self.humidity,) = struct.unpack(
+                        "<f", await client.read_gatt_char(HUMIDITY_UUID)
+                    )
+                    (self.eCO2,) = struct.unpack(
+                        "<f", await client.read_gatt_char(ECO2_UUID)
+                    )
+
                     self.last_update = time.time()
-                    self.menu_temp.title = f"Temperature: {self.temperature:.1f} ºC"
+                    self.menu_temperature.title = (
+                        f"Temperature: {self.temperature:.1f} ºC"
+                    )
+                    self.menu_pressure.title = f"Pressure: {self.pressure:.1f} hPa"
+                    self.menu_humidity.title = f"Humidity: {self.humidity:.1f} %"
+                    self.menu_eCO2.title = f"eCO₂: {self.eCO2:.0f} ppm"
                     self.update_title()
             except (asyncio.TimeoutError, bleak.BleakError):
                 self.device = None
@@ -57,10 +92,17 @@ class AwesomeStatusBarApp(rumps.App):
 
     def update_title(self):
         title_items = []
-        if self.menu_temp.state:
-            title_items.append(f"{self.temperature:.1f} ºC")
+        if self.menu_temperature.state:
+            title_items.append(f"{self.temperature:.1f}ºC")
+        if self.menu_pressure.state:
+            title_items.append(f"{self.pressure:.0f}hPa")
+        if self.menu_humidity.state:
+            title_items.append(f"{self.humidity:.0f}%")
+        if self.menu_eCO2.state:
+            title_items.append(f"{self.eCO2:.0f}ppm")
+
         if title_items:
-            self.title = " ".join(title_items)
+            self.title = " / ".join(title_items)
         else:
             self.title = "EnvSense"
 
@@ -104,6 +146,9 @@ class AwesomeStatusBarApp(rumps.App):
         self.menu_last_update.title = text
 
     @rumps.clicked("temperature")
+    @rumps.clicked("pressure")
+    @rumps.clicked("humidity")
+    @rumps.clicked("eCO2")
     def change_temperature_state(self, sender):
         sender.state = not sender.state
         self.update_title()
@@ -122,6 +167,4 @@ class AwesomeStatusBarApp(rumps.App):
 
 
 if __name__ == "__main__":
-    rumps.debug_mode(True)
-
     AwesomeStatusBarApp().run()
