@@ -189,4 +189,5 @@ def main():
 
 
 if __name__ == "__main__":
+    # rumps.debug_mode(True)
     main()
