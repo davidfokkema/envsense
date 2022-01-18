@@ -54,6 +54,7 @@ void setup() {
     BSEC_OUTPUT_CO2_EQUIVALENT,
     BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_HUMIDITY,
   };
+  // array of bsec_virtual_sensor_t, length of the array, sample rate constant
   iaqSensor.updateSubscription(sensorList, 3, BSEC_SAMPLE_RATE_LP);
 }
 
